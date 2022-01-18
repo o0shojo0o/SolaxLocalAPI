@@ -137,7 +137,7 @@ async function requestAPI() {
 
     } catch (e) {
         isOnline = false;
-        setVlauesOfZero();
+        setValuesOfZero();
     }
 
     setState(`${dataPointRoot}.${data_dataPoints['isOnline'].name}`, isOnline, true);
@@ -155,10 +155,10 @@ async function setDataPoint(dataPoint, data){
     setState(dataPointPath, data, true);
 }
 
-async function setVlauesOfZero(){
-    const vlauesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50]
+async function setValuesOfZero(){
+    const valuesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50]
     
-    for (const value of vlauesOfZero){
+    for (const value of valuesOfZero){
         const dataPoint = data_dataPoints[value];    
         setDataPoint(dataPoint,0)
     }
