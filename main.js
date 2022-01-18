@@ -13,7 +13,7 @@ const axios = require('axios').default;
 let requestTimer;
 
 const axiosConfig = {
-    timeout: 1000,
+    timeout: 3000,
     headers: {
         'X-Forwarded-For': '5.8.8.8'
     }
@@ -137,6 +137,7 @@ async function requestAPI() {
 
     } catch (e) {
         isOnline = false;
+        setVlauesOfZero();
     }
 
     setState(`${dataPointRoot}.${data_dataPoints['isOnline'].name}`, isOnline, true);
@@ -152,4 +153,13 @@ async function setDataPoint(dataPoint, data){
     }
 
     setState(dataPointPath, data, true);
+}
+
+async function setVlauesOfZero(){
+    const vlauesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50]
+    
+    for (const value of vlauesOfZero){
+        const dataPoint = data_dataPoints[value];    
+        setDataPoint(dataPoint,0)
+    }
 }
