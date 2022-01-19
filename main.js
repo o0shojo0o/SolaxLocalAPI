@@ -138,10 +138,6 @@ async function requestAPI() {
 
             setDataPoint(dataPoint, apiData.Information[key])
         }
-        
-        if (requestTimer) {
-            clearTimeout(requestTimer);
-        }
 
     } catch (e) {
         if (offlineCounter == 3){       
@@ -153,8 +149,12 @@ async function requestAPI() {
         }
     }
 
+    if (requestTimer) {
+        clearTimeout(requestTimer);
+    }
+    
     setState(`${dataPointRoot}.${data_dataPoints['isOnline'].name}`, isOnline, true);
-    requestTimer = setTimeout(() => { requestAPI(); }, interval_ms);
+    requestTimer = setTimeout(requestAPI, interval_ms);
 }
 
 async function setDataPoint(dataPoint, data){
