@@ -90,6 +90,7 @@ const data_dataPoints = {
     // ssdsd.INV1EPSCURRENT = apiData.Data[54];
     // ssdsd.INV1EPSPOWER = apiData.Data[55];
     // ssdsd.INV1EPSFREQUENCY = apiData.Data[56];
+    68: { name:'data.inverter_mode', description:'Inverter Mode', type: 'string'},
 };
 
 createStateAsync(`${dataPointRoot}.${data_dataPoints['isOnline'].name}`, {name: data_dataPoints['isOnline'].description, type: data_dataPoints['isOnline'].type, read: true, write: false, role: 'value'});
@@ -102,7 +103,7 @@ async function requestAPI() {
         const apiData = (await axios.post(url, axiosConfig)).data;
 
         isOnline = true;
-        //log(JSON.stringify(apiData))
+        log(JSON.stringify(apiData))
 
         for(const key in apiData){
             const dataPoint = root_dataPoints[key];     
@@ -119,7 +120,13 @@ async function requestAPI() {
                 continue;
             }
 
-            setDataPoint(dataPoint,apiData.Data[key])
+            let data = apiData.Data[key]
+            
+            if (key == '68'){
+                data = await getInverterMode(data)
+            }
+
+            setDataPoint(dataPoint, data)
         }       
 
         for(const key in apiData.Information){           
@@ -128,7 +135,7 @@ async function requestAPI() {
                 continue;
             }
 
-            setDataPoint(dataPoint,apiData.Information[key])
+            setDataPoint(dataPoint, apiData.Information[key])
         }
         
         if (requestTimer) {
@@ -155,11 +162,68 @@ async function setDataPoint(dataPoint, data){
     setState(dataPointPath, data, true);
 }
 
+async function getInverterMode(modeNumber) {
+    let inverterMode;
+    switch (modeNumber) {
+        case 0:
+            inverterMode = 'Wait Mode';
+            break;
+        case 1:
+            inverterMode = 'Check Mode';
+            break;
+        case 2:
+            inverterMode = 'Normal Mode';
+            break;
+        case 3:
+            inverterMode = 'Fault Mode';
+            break;
+        case 4:
+            inverterMode = 'Permanent Fault Mode';
+            break;
+        case 5:
+            inverterMode = 'Update Mode';
+            break;
+        case 6:
+            inverterMode = 'EPS Check Mode';
+            break;
+        case 7:
+            inverterMode = 'EPS Mode';
+            break;
+        case 8:
+            inverterMode = 'Self-Test Mode';
+            break;
+        case 9:
+            inverterMode = 'Idle Mode';
+            break;
+        case 10:
+            inverterMode = 'Standby Mode';
+            break;
+        case 11:
+            inverterMode = 'Pv Wake Up Bat Mode';
+            break;
+        case 12:
+            inverterMode = 'Gen Check Mode';
+            break;
+        case 13:
+            inverterMode = 'Gen Run Mode';
+            break;
+        default:
+            inverterMode = 'unknown';
+    }
+    return inverterMode;
+}
+
 async function setValuesOfZero(){
-    const valuesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50]
+    const valuesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50, 68]
     
     for (const value of valuesOfZero){
-        const dataPoint = data_dataPoints[value];    
-        setDataPoint(dataPoint,0)
+        const dataPoint = data_dataPoints[value];  
+        let data = '0';
+        
+        if (value == 68){
+            data = await getInverterMode(data)
+       
+        }  
+        setDataPoint(dataPoint, data)
     }
 }
