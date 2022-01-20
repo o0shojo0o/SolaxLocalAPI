@@ -100,7 +100,7 @@ requestAPI();
 async function requestAPI() {  
     try {
         const url = `http://${solaxIP}:80/?optType=ReadRealTimeData&pwd=${solaxPass}`;
-        const apiData = (await axios.post(url, axiosConfig)).data;
+        const apiData = (await axios.post(url, null, axiosConfig)).data;
 
         offlineCounter = 0;
         isOnline = true;
@@ -142,7 +142,7 @@ async function requestAPI() {
     } catch (e) {
         if (offlineCounter == 3){       
             isOnline = false;
-            setValuesOfZero();
+            resetValues();
         }
         else {
              offlineCounter++;
@@ -219,17 +219,16 @@ async function getInverterMode(modeNumber) {
     return inverterMode;
 }
 
-async function setValuesOfZero(){
-    const valuesOfZero = [0,1,2,3,4,5,6,7,8,10,11,12,43,50, 68]
+async function resetValues(){
+    const valuesOfReset = [0,1,2,3,4,5,6,7,8,10,11,12,43,50, 68]
     
-    for (const value of valuesOfZero){
+    for (const value of valuesOfReset){
         const dataPoint = data_dataPoints[value];  
-        let data = '0';
         
         if (value == 68){
-            data = await getInverterMode(data)
-       
-        }  
-        setDataPoint(dataPoint, data)
+            setDataPoint(dataPoint, await getInverterMode(-1))       
+        } else {
+            setDataPoint(dataPoint, 0)
+        }
     }
 }
