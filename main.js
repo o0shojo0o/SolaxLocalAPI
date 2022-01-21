@@ -13,6 +13,7 @@ const dataPointRoot = '0_userdata.0.Solax_X1_Mini';
 
 const axios = require('axios').default;
 let requestTimer;
+let requestTimeOut;
 let offlineCounter = 0;
 let isOnline = false;
 const stateCache= [];
@@ -90,17 +91,15 @@ requestAPI();
 
 async function requestAPI() {  
     try {
-        let apiData = null;
         const source = axios.CancelToken.source();
-        setTimeout(() => {
-            if (apiData === null) {
-                source.cancel();
-            }
+        requestTimeOut = setTimeout(() => {  
+            source.cancel();     
         }, 3000)
 
         const url = `http://${solaxIP}:80/?optType=ReadRealTimeData&pwd=${solaxPass}`;
-        apiData = (await axios.post(url, null,  {cancelToken: source.token, headers: {'X-Forwarded-For': '5.8.8.8'}})).data;
-
+        const apiData = (await axios.post(url, null,  {cancelToken: source.token, headers: {'X-Forwarded-For': '5.8.8.8'}})).data;        
+            
+        clearTimeout(requestTimeOut);
         offlineCounter = 0;
         isOnline = true;
         //log(JSON.stringify(apiData))
@@ -146,6 +145,10 @@ async function requestAPI() {
         else {
              offlineCounter++;
         }
+    }
+
+    if (requestTimeOut){
+         clearTimeout(requestTimeOut);
     }
 
     if (requestTimer) {
