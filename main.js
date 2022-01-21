@@ -12,13 +12,7 @@ const dataPointRoot = '0_userdata.0.Solax_X1_Mini';
 //############### Config end ############
 
 const axios = require('axios').default;
-const axiosConfig = {
-    timeout: 3000,
-    headers: {
-        'X-Forwarded-For': '5.8.8.8'
-    }
-}
-
+let queryTimeOut;
 let requestTimer;
 let offlineCounter = 0;
 let isOnline = false;
@@ -87,11 +81,7 @@ const data_dataPoints = {
     43: { name:'data.power_now', description:'Power Now', type: 'number', unit:'W' },
     // 'Grid Frequency': (50, 'Hz'),
     50: { name:'data.grid_frequency', description:'Grid Frequency', type: 'number', unit:'Hz' },
-
-    // ssdsd.INV1EPSVOLTAGE = apiData.Data[53];
-    // ssdsd.INV1EPSCURRENT = apiData.Data[54];
-    // ssdsd.INV1EPSPOWER = apiData.Data[55];
-    // ssdsd.INV1EPSFREQUENCY = apiData.Data[56];
+    // 'Inverter Mode': (68, '')
     68: { name:'data.inverter_mode', description:'Inverter Mode', type: 'string'},
 };
 
@@ -101,9 +91,18 @@ requestAPI();
 
 async function requestAPI() {  
     try {
-        const url = `http://${solaxIP}:80/?optType=ReadRealTimeData&pwd=${solaxPass}`;
-        const apiData = (await axios.post(url, null, axiosConfig)).data;
+        let apiData = null;
+        const source = axios.CancelToken.source();
+        setTimeout(() => {
+            if (apiData === null) {
+                source.cancel();
+            }
+        }, 3000)
 
+        const url = `http://${solaxIP}:80/?optType=ReadRealTimeData&pwd=${solaxPass}`;
+        apiData = (await axios.post(url, null,  {cancelToken: source.token, headers: {'X-Forwarded-For': '5.8.8.8'}})).data;
+
+        clearTimeout(queryTimeOut);
         offlineCounter = 0;
         isOnline = true;
         //log(JSON.stringify(apiData))
@@ -141,7 +140,8 @@ async function requestAPI() {
             setDataPoint(dataPoint, apiData.Information[key])
         }
 
-    } catch (e) {
+    } catch (e) {       
+        clearTimeout(queryTimeOut);
         if (offlineCounter == countsOfOffline){       
             isOnline = false;
             resetValues();
