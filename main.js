@@ -1,6 +1,8 @@
 //############### Config ###############
 // Query interval in milliseconds
 const interval_ms = 5000;
+// Count of failed queries until detected as offline
+const countsOfOffline = 5
 // Solax IP
 const solaxIP = '192.168.1.135';
 // Solax Pass
@@ -18,7 +20,6 @@ const axiosConfig = {
 }
 
 let requestTimer;
-const countsOfOffline = 5
 let offlineCounter = 0;
 let isOnline = false;
 const stateCache= [];
