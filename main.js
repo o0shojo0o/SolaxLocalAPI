@@ -1,8 +1,8 @@
 //############### Config ###############
 // Query interval in milliseconds
-const interval_ms = 5000;
-// Count of failed queries until detected as offline
-const countsOfOffline = 5
+const interval_ms = 1000;
+// Timeout detected as offline
+const offlineTimeoutMs = 60000
 // Solax IP
 const solaxIP = '192.168.1.135';
 // Solax Pass
@@ -15,6 +15,7 @@ const axios = require('axios').default;
 let requestTimer;
 let requestTimeOut;
 let offlineCounter = 0;
+let offlineTimeout;
 let isOnline = false;
 const stateCache= [];
 
@@ -100,7 +101,7 @@ async function requestAPI() {
         const apiData = (await axios.post(url, null,  {cancelToken: source.token, headers: {'X-Forwarded-For': '5.8.8.8'}})).data;        
             
         clearTimeout(requestTimeOut);
-        offlineCounter = 0;
+        clearTimeout(offlineTimeout);
         isOnline = true;
         //log(JSON.stringify(apiData))
 
@@ -138,12 +139,11 @@ async function requestAPI() {
         }
 
     } catch (e) {
-        if (offlineCounter == countsOfOffline){       
-            isOnline = false;
-            resetValues();
-        }
-        else {
-             offlineCounter++;
+        if (!offlineTimeout){
+            offlineTimeout = setTimeout(()=>{
+                isOnline = false;
+                resetValues();
+            }, offlineTimeoutMs);
         }
     }
 
@@ -222,7 +222,7 @@ async function getInverterMode(modeNumber) {
 }
 
 async function resetValues(){
-    const valuesOfReset = [0,1,2,3,4,5,6,7,8,10,11,12,43,50, 68]
+    const valuesOfReset = [0,1,2,3,4,5,6,7,8,10,11,12,43,50,68]
     
     for (const value of valuesOfReset){
         const dataPoint = data_dataPoints[value];  
