@@ -1,6 +1,6 @@
 //############### Config ###############
 // Query interval in milliseconds
-const interval_ms = 1000;
+const interval_ms = 5000;
 // Timeout detected as offline
 const offlineTimeoutMs = 60000
 // Solax IP
@@ -96,14 +96,14 @@ async function requestAPI() {
         requestTimeOut = setTimeout(() => {  
             source.cancel();     
         }, 3000)
-
+        
         const url = `http://${solaxIP}:80/?optType=ReadRealTimeData&pwd=${solaxPass}`;
         const apiData = (await axios.post(url, null,  {cancelToken: source.token, headers: {'X-Forwarded-For': '5.8.8.8'}})).data;        
-            
-        clearTimeout(requestTimeOut);
+        
+        clearTimeout(requestTimeOut);        
         clearTimeout(offlineTimeout);
+        offlineTimeout = null;
         isOnline = true;
-        //log(JSON.stringify(apiData))
 
         for(const key in apiData){
             const dataPoint = root_dataPoints[key];     
@@ -137,9 +137,9 @@ async function requestAPI() {
 
             setDataPoint(dataPoint, apiData.Information[key])
         }
-
+        
     } catch (e) {
-        if (!offlineTimeout){
+        if (offlineTimeout != null){
             offlineTimeout = setTimeout(()=>{
                 isOnline = false;
                 resetValues();
